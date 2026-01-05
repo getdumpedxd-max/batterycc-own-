@@ -202,3 +202,218 @@ Main.BackgroundTransparency = 1
 TweenService:Create(Main, TweenInfo.new(0.4), {
     BackgroundTransparency = 0.05
 }):Play()
+--// ===== Battery.cc ADD-ONS (Safe Append) =====
+
+local Players = game:GetService("Players")
+local TweenService = game:GetService("TweenService")
+local LocalPlayer = Players.LocalPlayer
+
+-- 🔹 WELCOME TEXT
+local WelcomeText = Instance.new("TextLabel")
+WelcomeText.Name = "WelcomeText"
+WelcomeText.BackgroundTransparency = 1
+WelcomeText.Position = UDim2.fromOffset(0, 30)
+WelcomeText.Size = UDim2.new(1, 0, 0, 18)
+WelcomeText.Text = "Welcome, "..LocalPlayer.DisplayName
+WelcomeText.Font = Enum.Font.Gotham
+WelcomeText.TextSize = 13
+WelcomeText.TextColor3 = Color3.fromRGB(160,160,180)
+WelcomeText.TextTransparency = 0.1
+WelcomeText.TextXAlignment = Enum.TextXAlignment.Center
+WelcomeText.Parent = Main
+
+-- 🔹 TAB HOLDER
+local TabsHolder = Instance.new("Frame")
+TabsHolder.Name = "TabsHolder"
+TabsHolder.BackgroundTransparency = 1
+TabsHolder.Position = UDim2.fromOffset(18, 56)
+TabsHolder.Size = UDim2.new(1, -36, 0, 26)
+TabsHolder.Parent = Main
+
+local TabsLayout = Instance.new("UIListLayout")
+TabsLayout.FillDirection = Enum.FillDirection.Horizontal
+TabsLayout.Padding = UDim.new(0, 10)
+TabsLayout.Parent = TabsHolder
+
+-- 🔹 TAB FUNCTION
+local Tabs = {}
+local ActiveTab = nil
+
+local function CreateTab(name)
+    local Tab = Instance.new("TextButton")
+    Tab.Name = name.."Tab"
+    Tab.Size = UDim2.fromOffset(70, 24)
+    Tab.BackgroundColor3 = Color3.fromRGB(18,18,26)
+    Tab.Text = name
+    Tab.Font = Enum.Font.GothamMedium
+    Tab.TextSize = 12
+    Tab.TextColor3 = Color3.fromRGB(170,170,190)
+    Tab.AutoButtonColor = false
+    Tab.Parent = TabsHolder
+
+    local Corner = Instance.new("UICorner")
+    Corner.CornerRadius = UDim.new(0, 8)
+    Corner.Parent = Tab
+
+    local Stroke = Instance.new("UIStroke")
+    Stroke.Thickness = 1
+    Stroke.Color = Color3.fromRGB(90,70,200)
+    Stroke.Transparency = 1
+    Stroke.Parent = Tab
+
+    Tab.MouseButton1Click:Connect(function()
+        if ActiveTab then
+            TweenService:Create(ActiveTab, TweenInfo.new(0.15), {
+                BackgroundColor3 = Color3.fromRGB(18,18,26),
+                TextColor3 = Color3.fromRGB(170,170,190)
+            }):Play()
+            ActiveTab.UIStroke.Transparency = 1
+        end
+
+        ActiveTab = Tab
+        TweenService:Create(Tab, TweenInfo.new(0.15), {
+            BackgroundColor3 = Color3.fromRGB(40,30,80),
+            TextColor3 = Color3.fromRGB(220,220,255)
+        }):Play()
+        Stroke.Transparency = 0
+    end)
+
+    Tabs[name] = Tab
+    return Tab
+end
+
+-- 🔹 CREATE TABS (200-char width safe)
+CreateTab("Main")
+CreateTab("Rage")
+CreateTab("Misc")
+CreateTab("World")
+CreateTab("Settings")
+CreateTab("HVH")
+
+-- Auto-select Main
+task.delay(0.1, function()
+    Tabs["Main"]:Activate()
+end)
+--// ===== Battery.cc ADD-ON #2 =====
+--// Tabs | Indicator | Toggle Key
+
+local UIS = game:GetService("UserInputService")
+local TweenService = game:GetService("TweenService")
+
+------------------------------------------------
+-- UI TOGGLE (RightShift)
+------------------------------------------------
+local UIVisible = true
+UIS.InputBegan:Connect(function(input, gpe)
+    if gpe then return end
+    if input.KeyCode == Enum.KeyCode.RightShift then
+        UIVisible = not UIVisible
+        Main.Visible = UIVisible
+    end
+end)
+
+------------------------------------------------
+-- TAB CONTENT HOLDER
+------------------------------------------------
+local Pages = Instance.new("Frame")
+Pages.Name = "Pages"
+Pages.BackgroundTransparency = 1
+Pages.Position = UDim2.fromOffset(18, 90)
+Pages.Size = UDim2.new(1, -36, 1, -100)
+Pages.Parent = Main
+
+------------------------------------------------
+-- PAGE CREATOR
+------------------------------------------------
+local PageMap = {}
+local CurrentPage = nil
+
+local function CreatePage(name)
+    local Page = Instance.new("Frame")
+    Page.Name = name .. "Page"
+    Page.Size = UDim2.fromScale(1,1)
+    Page.BackgroundTransparency = 1
+    Page.Visible = false
+    Page.Parent = Pages
+
+    PageMap[name] = Page
+    return Page
+end
+
+-- Create Pages
+local MainPage     = CreatePage("Main")
+local RagePage     = CreatePage("Rage")
+local MiscPage     = CreatePage("Misc")
+local WorldPage    = CreatePage("World")
+local SettingsPage = CreatePage("Settings")
+local HVHPage      = CreatePage("HVH")
+
+------------------------------------------------
+-- PAGE PLACEHOLDER TEXT (features come later)
+------------------------------------------------
+local function PageLabel(page, text)
+    local lbl = Instance.new("TextLabel")
+    lbl.BackgroundTransparency = 1
+    lbl.Size = UDim2.fromScale(1,1)
+    lbl.Text = text
+    lbl.Font = Enum.Font.GothamMedium
+    lbl.TextSize = 14
+    lbl.TextColor3 = Color3.fromRGB(180,180,200)
+    lbl.TextWrapped = true
+    lbl.Parent = page
+end
+
+PageLabel(MainPage, "Main\n\n• Aim Assist\n• Target Info\n• Core Systems")
+PageLabel(RagePage, "Rage\n\n• Resolver\n• Prediction\n• Aggressive Logic")
+PageLabel(MiscPage, "Misc\n\n• Movement\n• Keybinds\n• UI Options")
+PageLabel(WorldPage, "World\n\n• ESP\n• World Tweaks\n• Lighting")
+PageLabel(SettingsPage, "Settings\n\n• Configs\n• Performance\n• UI")
+PageLabel(HVHPage, "HVH\n\n• Anti-Aim\n• Desync\n• HVH Logic")
+
+------------------------------------------------
+-- TAB INDICATOR (Animated Line)
+------------------------------------------------
+local Indicator = Instance.new("Frame")
+Indicator.BackgroundColor3 = Color3.fromRGB(140,100,255)
+Indicator.Size = UDim2.fromOffset(0, 2)
+Indicator.Position = UDim2.new(0, 0, 1, -2)
+Indicator.Parent = TabsHolder
+
+local IndicatorCorner = Instance.new("UICorner")
+IndicatorCorner.CornerRadius = UDim.new(1,0)
+IndicatorCorner.Parent = Indicator
+
+------------------------------------------------
+-- TAB SWITCH FUNCTION
+------------------------------------------------
+local function SwitchTab(tabButton, tabName)
+    if CurrentPage then
+        CurrentPage.Visible = false
+    end
+
+    CurrentPage = PageMap[tabName]
+    CurrentPage.Visible = true
+
+    -- Move indicator
+    TweenService:Create(Indicator, TweenInfo.new(0.25, Enum.EasingStyle.Quart), {
+        Size = UDim2.fromOffset(tabButton.AbsoluteSize.X, 2),
+        Position = UDim2.fromOffset(
+            tabButton.AbsolutePosition.X - TabsHolder.AbsolutePosition.X,
+            TabsHolder.AbsoluteSize.Y - 2
+        )
+    }):Play()
+end
+
+------------------------------------------------
+-- CONNECT EXISTING TABS
+------------------------------------------------
+for name, tab in pairs(Tabs) do
+    tab.MouseButton1Click:Connect(function()
+        SwitchTab(tab, name)
+    end)
+end
+
+-- Default Tab
+task.delay(0.05, function()
+    SwitchTab(Tabs["Main"], "Main")
+end)
